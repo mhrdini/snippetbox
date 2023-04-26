@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+	"html/template"
+	"log"
 	"net/http"
 	"strconv"
 )
@@ -14,7 +16,28 @@ func home(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write([]byte("Hello from Snippetbox"))
+	// Use template.ParseFiles()
+	files := []string{
+		"../../ui/html/home.page.html",
+		"../../ui/html/base.layout.html",
+		"../../ui/html/footer.partial.html",
+	}
+
+	ts, err := template.ParseFiles(files...)
+	if err != nil {
+		log.Println(err.Error())
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+
+	// Use Execute() method on the template set to write the template content as the response body.
+	// The last parameter to Execute() is the dynamic data that we may pass in.
+	err = ts.Execute(w, nil)
+	if err != nil {
+		log.Println(err.Error())
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+	}
+
 }
 
 // Add a showSnippet handler function that receives an id query parameter
