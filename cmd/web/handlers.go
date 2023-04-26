@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 	"strconv"
 )
@@ -37,23 +36,9 @@ func createSnippet(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Allow", "POST")
 		// w.WriteHeader(405)
 		// w.Write([]byte("Method Not Allowed"))
-		http.Error(w, "Method Not Allowed", 405)
+		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
 		return
 	}
 
 	w.Write([]byte("Create a new snippet..."))
-}
-
-func main() {
-	// http.NewServeMux initialises a new servemux
-	// and is used to register handlers for a URL pattern
-	mux := http.NewServeMux()
-	mux.HandleFunc("/", home)
-	mux.HandleFunc("/snippet", showSnippet)
-	mux.HandleFunc("/snippet/create", createSnippet)
-
-	// http.ListenAndServe starts a new web server
-	log.Println("Starting server on :4000")
-	err := http.ListenAndServe(":4000", mux)
-	log.Fatal(err)
 }
