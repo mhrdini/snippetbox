@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"html/template"
 	"net/http"
 	"strconv"
 
@@ -17,27 +16,36 @@ func (app *application) home(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Use template.ParseFiles()
-	files := []string{
-		"../../ui/html/home.page.html",
-		"../../ui/html/base.layout.html",
-		"../../ui/html/footer.partial.html",
-	}
-
-	ts, err := template.ParseFiles(files...)
+	s, err := app.snippets.Latest()
 	if err != nil {
-		app.errorLog.Println(err.Error())
 		app.serverError(w, err)
 		return
 	}
-
-	// Use Execute() method on the template set to write the template content as the response body.
-	// The last parameter to Execute() is the dynamic data that we may pass in.
-	err = ts.Execute(w, nil)
-	if err != nil {
-		app.errorLog.Println(err.Error())
-		app.serverError(w, err)
+	for _, snippet := range s {
+		fmt.Fprintf(w, "%v\n", snippet)
 	}
+
+	// // Use template.ParseFiles()
+	// files := []string{
+	// 	"../../ui/html/home.page.html",
+	// 	"../../ui/html/base.layout.html",
+	// 	"../../ui/html/footer.partial.html",
+	// }
+
+	// ts, err := template.ParseFiles(files...)
+	// if err != nil {
+	// 	app.errorLog.Println(err.Error())
+	// 	app.serverError(w, err)
+	// 	return
+	// }
+
+	// // Use Execute() method on the template set to write the template content as the response body.
+	// // The last parameter to Execute() is the dynamic data that we may pass in.
+	// err = ts.Execute(w, nil)
+	// if err != nil {
+	// 	app.errorLog.Println(err.Error())
+	// 	app.serverError(w, err)
+	// }
 
 }
 
