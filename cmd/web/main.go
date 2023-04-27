@@ -42,28 +42,13 @@ func main() {
 		infoLog:  infoLog,
 	}
 
-	// http.NewServeMux initialises a new servemux
-	// and is used to register handlers for a URL pattern
-	mux := http.NewServeMux()
-	mux.HandleFunc("/", app.home)
-	mux.HandleFunc("/snippet", app.showSnippet)
-	mux.HandleFunc("/snippet/create", app.createSnippet)
-
-	// Use the relative path to create a file server at that path
-	fs := http.FileServer(http.Dir(cfg.StaticDir))
-	// When this handler receives a request, it will remove the leading slash from the URL path and
-	// then search the file server directory for the corresponding file to send the user.
-	// This is done by stripping the leading "/static" from the URL path before passing it to the file
-	// server, otherwise it will be looking for a file which does not exist
-	mux.Handle("/static/", http.StripPrefix("/static", fs))
-
 	// Initialise a new http.Server struct, setting the Addr and Handler fields to have it use the
-	// same network address and routes as before, and the ErrorLog field so that the server now uses
+	// appropriate network address and routes, and the ErrorLog field so that the server now uses
 	// the custom errorLog logger in the event of any problems
 	srv := &http.Server{
 		Addr:     cfg.Addr,
 		ErrorLog: errorLog,
-		Handler:  mux,
+		Handler:  app.routes(), // servemux in routes.go
 	}
 	infoLog.Printf("Starting server on %s\n", cfg.Addr)
 	err := srv.ListenAndServe()
