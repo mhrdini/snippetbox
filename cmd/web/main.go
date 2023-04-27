@@ -1,15 +1,19 @@
 package main
 
 import (
+	"database/sql"
 	"flag"
 	"log"
 	"net/http"
 	"os"
+
+	_ "github.com/go-sql-driver/mysql" // we need the driver's init() function to run so it can register itself with the sql package
 )
 
 type Config struct {
 	Addr      string
 	StaticDir string
+	DSN       string
 }
 
 // Define an application struct to hold the application-wide dependencies for the web application.
@@ -21,10 +25,11 @@ type application struct {
 func main() {
 	cfg := new(Config)
 
-	// Define a new command-line flag with the name 'addr', a default value of ":4000" and some short
+	// Define a new command-line flag with its identifier, a default value and some short
 	// help text explaining what the flag controls
 	flag.StringVar(&cfg.Addr, "addr", ":4000", "HTTP network address")
 	flag.StringVar(&cfg.StaticDir, "static-dir", "../../ui/static/", "Path to static assets")
+	flag.StringVar(&cfg.DSN, "dsn", "web:web@/snippetbox?parseTime=true", "MySQL database connection string")
 
 	// Parse flags before you use them
 	flag.Parse()
@@ -35,6 +40,12 @@ func main() {
 	// ErrorLog -> Writes to os.Stderr, use log.Lshortfile flag to include relevant file name and line number
 	infoLog := log.New(os.Stdout, "INFO\t", log.Ldate|log.Ltime)
 	errorLog := log.New(os.Stderr, "ERROR\t", log.Ldate|log.Ltime|log.Lshortfile)
+
+	// Open DB here
+	db, err := openDB(cfg.DSN)
+	if err != nil {
+		errorLog.Fatal(err)
+	}
 
 	// Initialise a new instance of application containing the dependencies.
 	app := &application{
@@ -51,6 +62,20 @@ func main() {
 		Handler:  app.routes(cfg), // servemux in routes.go
 	}
 	infoLog.Printf("Starting server on %s\n", cfg.Addr)
-	err := srv.ListenAndServe()
+	err = srv.ListenAndServe()
 	errorLog.Fatal(err)
+}
+
+// openDB() wraps sql.Open() and returns a sql.DB connection pool for a given DSN
+func openDB(dsn string) (*sql.DB, error) {
+	db, err := sql.Open("mysql", dsn)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = db.Ping(); err != nil {
+		return nil, err
+	}
+
+	return db, nil
 }
