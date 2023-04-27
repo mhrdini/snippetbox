@@ -18,5 +18,5 @@ A tutorial project written in Go, completed by following the Let's Go book.
 ```
 go mod tidy
 cd cmd/web
-air
+air -- -addr=":8080"
 ```
