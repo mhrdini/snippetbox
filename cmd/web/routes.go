@@ -2,7 +2,7 @@ package main
 
 import "net/http"
 
-func (app *application) routes() *http.ServeMux {
+func (app *application) routes(cfg *Config) *http.ServeMux {
 	// http.NewServeMux initialises a new servemux
 	// and is used to register handlers for a URL pattern
 	mux := http.NewServeMux()

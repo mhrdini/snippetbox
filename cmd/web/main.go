@@ -48,7 +48,7 @@ func main() {
 	srv := &http.Server{
 		Addr:     cfg.Addr,
 		ErrorLog: errorLog,
-		Handler:  app.routes(), // servemux in routes.go
+		Handler:  app.routes(cfg), // servemux in routes.go
 	}
 	infoLog.Printf("Starting server on %s\n", cfg.Addr)
 	err := srv.ListenAndServe()
