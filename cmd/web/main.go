@@ -42,7 +42,7 @@ func main() {
 	errorLog := log.New(os.Stderr, "ERROR\t", log.Ldate|log.Ltime|log.Lshortfile)
 
 	// Open DB here
-	db, err := openDB(cfg.DSN)
+	_, err := openDB(cfg.DSN)
 	if err != nil {
 		errorLog.Fatal(err)
 	}
