@@ -8,6 +8,7 @@ import (
 	"os"
 
 	_ "github.com/go-sql-driver/mysql" // we need the driver's init() function to run so it can register itself with the sql package
+	"github.com/mhrdini/snippetbox/pkg/models/mysql"
 )
 
 type Config struct {
@@ -20,6 +21,7 @@ type Config struct {
 type application struct {
 	errorLog *log.Logger
 	infoLog  *log.Logger
+	snippets *mysql.SnippetModel
 }
 
 func main() {
@@ -42,7 +44,7 @@ func main() {
 	errorLog := log.New(os.Stderr, "ERROR\t", log.Ldate|log.Ltime|log.Lshortfile)
 
 	// Open DB here
-	_, err := openDB(cfg.DSN)
+	db, err := openDB(cfg.DSN)
 	if err != nil {
 		errorLog.Fatal(err)
 	}
@@ -51,6 +53,7 @@ func main() {
 	app := &application{
 		errorLog: errorLog,
 		infoLog:  infoLog,
+		snippets: &mysql.SnippetModel{DB: db},
 	}
 
 	// Initialise a new http.Server struct, setting the Addr and Handler fields to have it use the
