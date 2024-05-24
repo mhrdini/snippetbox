@@ -6,7 +6,7 @@ import (
 	"github.com/mhrdini/snippetbox/ui"
 )
 
-func (app *application) routes(cfg *Config) *http.ServeMux {
+func (app *application) routes(cfg *Config) http.Handler {
 	// http.NewServeMux initialises a new servemux
 	// and is used to register handlers for a URL pattern
 	mux := http.NewServeMux()
@@ -22,5 +22,6 @@ func (app *application) routes(cfg *Config) *http.ServeMux {
 	mux.HandleFunc("/", app.home)
 	mux.HandleFunc("/snippet", app.viewSnippet)
 	mux.HandleFunc("/snippet/create", app.createSnippet)
-	return mux
+
+	return secureHeaders(mux)
 }
