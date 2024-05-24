@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"runtime/debug"
+	"time"
 )
 
 // Uses debug.Stack() function to get a stack trace for the current goroutine
@@ -38,5 +39,13 @@ func (app *application) render(w http.ResponseWriter, r *http.Request, name stri
 	err := ts.Execute(w, td)
 	if err != nil {
 		app.serverError(w, err)
+	}
+}
+
+// Create a newTemplateData() helper, which returns a pointer to a templateData struct
+// initialized with the current year.
+func (app *application) newTemplateData(r *http.Request) *templateData {
+	return &templateData{
+		CurrentYear: time.Now().Year(),
 	}
 }

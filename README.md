@@ -65,3 +65,9 @@ go mod tidy
 cd cmd/web
 air
 ```
+
+To kill a process at some port:
+
+```bash
+kill $(lsof -t -i:PORT)
+```

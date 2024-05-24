@@ -23,14 +23,15 @@ func (app *application) home(w http.ResponseWriter, r *http.Request) {
 	// 	fmt.Fprintf(w, "%v\n", snippet)
 	// }
 
-	data := &templateData{Snippets: s}
+	data := app.newTemplateData(r)
+	data.Snippets = s
 
 	app.render(w, r, "home.tmpl.html", data)
 }
 
-// Add a showSnippet handler function that receives an id query parameter
+// Add a viewSnippet handler function that receives an id query parameter
 // that must be an integer greater than or equal to 1.
-func (app *application) showSnippet(w http.ResponseWriter, r *http.Request) {
+func (app *application) viewSnippet(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.Atoi(r.URL.Query().Get("id"))
 	if err != nil || id < 1 {
 		app.notFound(w)
@@ -46,8 +47,10 @@ func (app *application) showSnippet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	data := &templateData{Snippet: s}
-	app.render(w, r, "show.tmpl.html", data)
+	data := app.newTemplateData(r)
+	data.Snippet = s
+
+	app.render(w, r, "view.tmpl.html", data)
 }
 
 // Add a createSnippet handler function that only receives POST requests.

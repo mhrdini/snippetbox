@@ -20,7 +20,7 @@ func (app *application) routes(cfg *Config) *http.ServeMux {
 	mux.Handle("/static/", fs)
 
 	mux.HandleFunc("/", app.home)
-	mux.HandleFunc("/snippet", app.showSnippet)
+	mux.HandleFunc("/snippet", app.viewSnippet)
 	mux.HandleFunc("/snippet/create", app.createSnippet)
 	return mux
 }

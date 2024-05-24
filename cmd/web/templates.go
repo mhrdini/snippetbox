@@ -4,6 +4,7 @@ import (
 	"html/template"
 	"io/fs"
 	"path/filepath"
+	"time"
 
 	"github.com/mhrdini/snippetbox/internal/models"
 	"github.com/mhrdini/snippetbox/ui"
@@ -12,8 +13,23 @@ import (
 // Define a templateData type to act as the holding structure for any dynamic data
 // that we want to pass to our HTML templates.
 type templateData struct {
-	Snippet  *models.Snippet
-	Snippets []*models.Snippet
+	CurrentYear int
+	Snippet     *models.Snippet
+	Snippets    []*models.Snippet
+}
+
+func prettyDate(t time.Time) string {
+	// Return the empty string id time has the zero value.
+	if t.IsZero() {
+		return ""
+	}
+
+	// Convert the time to UTC before formatting it.
+	return t.UTC().Format("02 Jan 2006 at 15:04")
+}
+
+var functions = template.FuncMap{
+	"prettyDate": prettyDate,
 }
 
 // Caches all the templates in a map by using filepath.Glob() to get a slice of all pages
@@ -38,7 +54,7 @@ func newTemplateCache() (map[string]*template.Template, error) {
 			page,
 		}
 
-		ts, err := template.New(filename).ParseFS(ui.Files, files...)
+		ts, err := template.New(filename).Funcs(functions).ParseFS(ui.Files, files...)
 		if err != nil {
 			return nil, err
 		}
