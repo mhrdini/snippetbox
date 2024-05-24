@@ -1,15 +1,13 @@
 package main
 
 import (
-	"html/template"
 	"net/http"
 	"strconv"
 
-	"github.com/mhrdini/snippetbox/pkg/models"
+	"github.com/mhrdini/snippetbox/internal/models"
 )
 
-// Define a home handler function which writes a byte slice containing
-// "Hello from Snippetbox" as the response body
+// Define a home handler function
 func (app *application) home(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path != "/" {
 		app.notFound(w)
@@ -27,28 +25,7 @@ func (app *application) home(w http.ResponseWriter, r *http.Request) {
 
 	data := &templateData{Snippets: s}
 
-	// Use template.ParseFiles()
-	files := []string{
-		"../../ui/html/home.page.html",
-		"../../ui/html/base.layout.html",
-		"../../ui/html/footer.partial.html",
-	}
-
-	ts, err := template.ParseFiles(files...)
-	if err != nil {
-		app.errorLog.Println(err.Error())
-		app.serverError(w, err)
-		return
-	}
-
-	// Use Execute() method on the template set to write the template content as the response body.
-	// The last parameter to Execute() is the dynamic data that we may pass in.
-	err = ts.Execute(w, data)
-	if err != nil {
-		app.errorLog.Println(err.Error())
-		app.serverError(w, err)
-	}
-
+	app.render(w, r, "home.tmpl.html", data)
 }
 
 // Add a showSnippet handler function that receives an id query parameter
@@ -70,23 +47,7 @@ func (app *application) showSnippet(w http.ResponseWriter, r *http.Request) {
 	}
 
 	data := &templateData{Snippet: s}
-
-	files := []string{
-		"../../ui/html/show.page.html",
-		"../../ui/html/base.layout.html",
-		"../../ui/html/footer.partial.html",
-	}
-
-	ts, err := template.ParseFiles(files...)
-	if err != nil {
-		app.serverError(w, err)
-		return
-	}
-
-	err = ts.Execute(w, data)
-	if err != nil {
-		app.serverError(w, err)
-	}
+	app.render(w, r, "show.tmpl.html", data)
 }
 
 // Add a createSnippet handler function that only receives POST requests.

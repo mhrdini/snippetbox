@@ -3,12 +3,13 @@ package main
 import (
 	"database/sql"
 	"flag"
+	"html/template"
 	"log"
 	"net/http"
 	"os"
 
 	_ "github.com/go-sql-driver/mysql" // we need the driver's init() function to run so it can register itself with the sql package
-	"github.com/mhrdini/snippetbox/pkg/models/mysql"
+	"github.com/mhrdini/snippetbox/internal/models/mysql"
 )
 
 type Config struct {
@@ -19,17 +20,18 @@ type Config struct {
 
 // Define an application struct to hold the application-wide dependencies for the web application.
 type application struct {
-	errorLog *log.Logger
-	infoLog  *log.Logger
-	snippets *mysql.SnippetModel
+	errorLog      *log.Logger
+	infoLog       *log.Logger
+	snippets      *mysql.SnippetModel
+	templateCache map[string]*template.Template
 }
 
 func main() {
 	cfg := new(Config)
 
-	// Define a new command-line flag with its identifier, a default value and some short
+	// Define a new command-line flag with its identifier, a default value, and some short
 	// help text explaining what the flag controls
-	flag.StringVar(&cfg.Addr, "addr", ":4000", "HTTP network address")
+	flag.StringVar(&cfg.Addr, "addr", ":8000", "HTTP network address")
 	flag.StringVar(&cfg.StaticDir, "static-dir", "../../ui/static/", "Path to static assets")
 	flag.StringVar(&cfg.DSN, "dsn", "web:web@/snippetbox?parseTime=true", "MySQL database connection string")
 
@@ -48,12 +50,20 @@ func main() {
 	if err != nil {
 		errorLog.Fatal(err)
 	}
+	defer db.Close()
+
+	// Initialise template cache
+	templateCache, err := newTemplateCache()
+	if err != nil {
+		errorLog.Fatal(err)
+	}
 
 	// Initialise a new instance of application containing the dependencies.
 	app := &application{
-		errorLog: errorLog,
-		infoLog:  infoLog,
-		snippets: &mysql.SnippetModel{DB: db},
+		errorLog:      errorLog,
+		infoLog:       infoLog,
+		snippets:      &mysql.SnippetModel{DB: db},
+		templateCache: templateCache,
 	}
 
 	// Initialise a new http.Server struct, setting the Addr and Handler fields to have it use the

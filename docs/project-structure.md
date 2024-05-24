@@ -7,9 +7,9 @@ snippetbox
 |    |
 |    +-- web          # the executable web application
 |
-+-- pkg               # non-application-specific, potentially reusable code like validation helpers and SQL database models for the project
++-- internal               # non-application-specific, potentially reusable code like validation helpers and SQL database models for the project
 |
-+-- ui                # user-interface assets used by the web application\
++-- ui                # user-interface assets used by the web application
      |
      +-- html         # html templates
      |
