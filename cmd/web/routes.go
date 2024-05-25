@@ -3,6 +3,7 @@ package main
 import (
 	"net/http"
 
+	"github.com/justinas/alice"
 	"github.com/mhrdini/snippetbox/ui"
 )
 
@@ -23,5 +24,5 @@ func (app *application) routes(cfg *Config) http.Handler {
 	mux.HandleFunc("/snippet", app.viewSnippet)
 	mux.HandleFunc("/snippet/create", app.createSnippet)
 
-	return app.recoverPanic(app.logRequest(secureHeaders(mux)))
+	return alice.New(app.recoverPanic, app.logRequest, secureHeaders).Then(mux)
 }
