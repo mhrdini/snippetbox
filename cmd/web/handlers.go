@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -22,7 +23,7 @@ func (app *application) home(w http.ResponseWriter, r *http.Request) {
 	data := app.newTemplateData(r)
 	data.Snippets = s
 
-	app.render(w, r, "home.tmpl.html", data)
+	app.render(w, http.StatusOK, "home.tmpl.html", data)
 }
 
 // Add a viewSnippet handler function that receives an id query parameter
@@ -47,22 +48,35 @@ func (app *application) viewSnippet(w http.ResponseWriter, r *http.Request) {
 	data := app.newTemplateData(r)
 	data.Snippet = s
 
-	app.render(w, r, "view.tmpl.html", data)
+	app.render(w, http.StatusOK, "view.tmpl.html", data)
 }
 
 // Add a createSnippet handler function that only receives POST requests.
 func (app *application) createSnippet(w http.ResponseWriter, r *http.Request) {
-
-	// id, err := app.snippets.Insert(title, content, expires)
-	// if err != nil {
-	// 	app.serverError(w, err)
-	// 	return
-	// }
-	// http.Redirect(w, r, fmt.Sprintf("/snippet?id=%d", id), http.StatusSeeOther)
+	data := app.newTemplateData(r)
+	app.render(w, http.StatusOK, "create.tmpl.html", data)
 }
 
 func (app *application) createSnippetPost(w http.ResponseWriter, r *http.Request) {
-	// TODO: from form -> id, err := app.snippets.Insert(title, content, expires)
-	// use id in redirect url
-	http.Redirect(w, r, "/snippet/view/1", http.StatusSeeOther)
+	err := r.ParseForm()
+	if err != nil {
+		app.clientError(w, http.StatusBadRequest)
+		return
+	}
+
+	title := r.PostForm.Get("title")
+	content := r.PostForm.Get("content")
+	expires, err := strconv.Atoi(r.PostForm.Get("expires"))
+	if err != nil {
+		app.clientError(w, http.StatusBadRequest)
+		return
+	}
+
+	id, err := app.snippets.Insert(title, content, expires)
+	if err != nil {
+		app.serverError(w, err)
+		return
+	}
+
+	http.Redirect(w, r, fmt.Sprintf("/snippet/view/%d", id), http.StatusSeeOther)
 }

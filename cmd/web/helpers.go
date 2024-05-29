@@ -29,10 +29,10 @@ func (app *application) notFound(w http.ResponseWriter) {
 
 // Retrieve appropriate template from cache set based on page name, if not found then return server
 // error helper method.
-func (app *application) render(w http.ResponseWriter, r *http.Request, name string, td *templateData) {
-	ts, ok := app.templateCache[name]
+func (app *application) render(w http.ResponseWriter, status int, filename string, td *templateData) {
+	ts, ok := app.templateCache[filename]
 	if !ok {
-		app.serverError(w, fmt.Errorf("not found: template %s does not exist", name))
+		app.serverError(w, fmt.Errorf("not found: template %s does not exist", filename))
 		return
 	}
 
