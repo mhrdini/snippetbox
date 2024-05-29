@@ -2,10 +2,13 @@ package main
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"net/http"
 	"runtime/debug"
 	"time"
+
+	"github.com/go-playground/form/v4"
 )
 
 // Uses debug.Stack() function to get a stack trace for the current goroutine
@@ -61,4 +64,32 @@ func (app *application) newTemplateData(r *http.Request) *templateData {
 	return &templateData{
 		CurrentYear: time.Now().Year(),
 	}
+}
+
+// Create a decodePostForm() helper method. dst is the target destination
+// that we want to decode the form data into
+func (app *application) decodePostForm(r *http.Request, dst any) error {
+	err := r.ParseForm()
+	if err != nil {
+		return err
+	}
+
+	// Call the Decode() method to insert decoded form data into dst from the request form data.
+	// i.e. fill the dst  with the relevant values from the HTML form.
+	err = app.formDecoder.Decode(dst, r.PostForm)
+	if err != nil {
+		// When target destination is not a non-nil pointer, Decode() method will return
+		// an error with the type *form.InvalidDecoderError and we check for this using errors.As()
+		// and raise a panic rather than returning the error
+		var invalidDecoderError *form.InvalidDecoderError
+
+		if errors.As(err, &invalidDecoderError) {
+			panic(err)
+		}
+
+		// For all other errors
+		return err
+	}
+
+	return nil
 }

@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/go-playground/form/v4"
 	_ "github.com/go-sql-driver/mysql" // we need the driver's init() function to run so it can register itself with the sql package
 	"github.com/mhrdini/snippetbox/internal/models/mysql"
 )
@@ -24,6 +25,7 @@ type application struct {
 	infoLog       *log.Logger
 	snippets      *mysql.SnippetModel
 	templateCache map[string]*template.Template
+	formDecoder   *form.Decoder
 }
 
 func main() {
@@ -58,12 +60,16 @@ func main() {
 		errorLog.Fatal(err)
 	}
 
+	// Initialise form decoder
+	formDecoder := form.NewDecoder()
+
 	// Initialise a new instance of application containing the dependencies.
 	app := &application{
 		errorLog:      errorLog,
 		infoLog:       infoLog,
 		snippets:      &mysql.SnippetModel{DB: db},
 		templateCache: templateCache,
+		formDecoder:   formDecoder,
 	}
 
 	// Initialise a new http.Server struct, setting the Addr and Handler fields to have it use the
