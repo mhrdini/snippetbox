@@ -3,26 +3,35 @@ package main
 import (
 	"net/http"
 
+	"github.com/julienschmidt/httprouter"
 	"github.com/justinas/alice"
 	"github.com/mhrdini/snippetbox/ui"
 )
 
 func (app *application) routes(cfg *Config) http.Handler {
-	// http.NewServeMux initialises a new servemux
+	// httprouter.New initialises a new servemux
 	// and is used to register handlers for a URL pattern
-	mux := http.NewServeMux()
+	router := httprouter.New()
+
+	// Createa handler function which wraps our app.notFound helper,
+	// then assign it as the custom handler for 404 Not Found responses.
+	// Can also be done for 405 Method Not Allowed using router.MethodNotAllowed.
+	router.NotFound = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		app.notFound(w)
+	})
+
+	// Patterns may include:
+	// - :named parameters, as a wildcard
+	// - *catch-all parameters, matches everything, should be at the end of a filepath
 
 	// Use the relative path to create a file server at that path
 	fs := http.FileServer(http.FS(ui.Files))
-	// When this handler receives a request, it will remove the leading slash from the URL path and
-	// then search the file server directory for the corresponding file to send the user.
-	// This is done by stripping the leading "/static" from the URL path before passing it to the file
-	// server, otherwise it will be looking for a file which does not exist
-	mux.Handle("/static/", fs)
+	router.Handler(http.MethodGet, "/static/*filepath", fs)
 
-	mux.HandleFunc("/", app.home)
-	mux.HandleFunc("/snippet", app.viewSnippet)
-	mux.HandleFunc("/snippet/create", app.createSnippet)
+	router.HandlerFunc(http.MethodGet, "/", app.home)
+	router.HandlerFunc(http.MethodGet, "/snippet/view/:id", app.viewSnippet)
+	router.HandlerFunc(http.MethodGet, "/snippet/create", app.createSnippet)
+	router.HandlerFunc(http.MethodPost, "/snippet/create", app.createSnippetPost)
 
-	return alice.New(app.recoverPanic, app.logRequest, secureHeaders).Then(mux)
+	return alice.New(app.recoverPanic, app.logRequest, secureHeaders).Then(router)
 }
