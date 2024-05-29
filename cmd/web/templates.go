@@ -16,6 +16,7 @@ type templateData struct {
 	CurrentYear int
 	Snippet     *models.Snippet
 	Snippets    []*models.Snippet
+	Form        any // to pass the validation errors and previously submitted data back to the template when we redisplay the form
 }
 
 func prettyDate(t time.Time) string {

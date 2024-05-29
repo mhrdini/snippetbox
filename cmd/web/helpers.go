@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"net/http"
 	"runtime/debug"
@@ -29,16 +30,28 @@ func (app *application) notFound(w http.ResponseWriter) {
 
 // Retrieve appropriate template from cache set based on page name, if not found then return server
 // error helper method.
-func (app *application) render(w http.ResponseWriter, status int, filename string, td *templateData) {
+func (app *application) render(w http.ResponseWriter, status int, filename string, data *templateData) {
+
 	ts, ok := app.templateCache[filename]
 	if !ok {
 		app.serverError(w, fmt.Errorf("not found: template %s does not exist", filename))
 		return
 	}
 
-	err := ts.Execute(w, td)
+	buf := new(bytes.Buffer)
+
+	err := ts.ExecuteTemplate(buf, "base", data)
 	if err != nil {
 		app.serverError(w, err)
+		return
+	}
+
+	w.WriteHeader(status)
+
+	_, err = buf.WriteTo(w)
+	if err != nil {
+		app.serverError(w, err)
+		return
 	}
 }
 
