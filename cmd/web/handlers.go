@@ -105,5 +105,9 @@ func (app *application) createSnippetPost(w http.ResponseWriter, r *http.Request
 		return
 	}
 
+	// Add toast message as part of session data
+	// If there is no existing session / session has expired, a new empty session will be auto-created
+	app.sessionManager.Put(r.Context(), "toast", "Snippet successfully created!")
+
 	http.Redirect(w, r, fmt.Sprintf("/snippet/view/%d", id), http.StatusSeeOther)
 }
