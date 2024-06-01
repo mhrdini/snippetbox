@@ -25,6 +25,12 @@ type userSignupForm struct {
 	validator.Validator `form:"-"`
 }
 
+type userLoginForm struct {
+	Email               string `form:"email"`
+	Password            string `form:"password"`
+	validator.Validator `form:"-"`
+}
+
 // Define a home handler function
 func (app *application) home(w http.ResponseWriter, r *http.Request) {
 	s, err := app.snippets.Latest()
@@ -136,7 +142,7 @@ func (app *application) userSignupPost(w http.ResponseWriter, r *http.Request) {
 
 	form.CheckField(validator.NotBlank(form.Name), "name", "This field cannot be blank")
 	form.CheckField(validator.NotBlank(form.Email), "email", "This field cannot be blank")
-	form.CheckField(validator.Matches(form.Email, validator.EmailRX), "email", "This field must be a valid email")
+	form.CheckField(validator.Matches(form.Email, validator.EmailRX), "email", "This field must be a valid email address")
 	form.CheckField(validator.NotBlank(form.Password), "password", "This field cannot be blank")
 	form.CheckField(validator.MinChars(form.Password, 8), "password", "This field must be at least 8 characters")
 
@@ -158,7 +164,6 @@ func (app *application) userSignupPost(w http.ResponseWriter, r *http.Request) {
 		} else {
 			app.serverError(w, err)
 		}
-
 		return
 	}
 
@@ -169,13 +174,67 @@ func (app *application) userSignupPost(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *application) userLogin(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintln(w, "Display a HTML form for logging in a user...")
+	data := app.newTemplateData(r)
+	data.Form = userLoginForm{}
+	app.render(w, http.StatusOK, "login.tmpl.html", data)
 }
 
 func (app *application) userLoginPost(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintln(w, "Authenticate and login the user...")
+	var form userLoginForm
+	err := app.decodePostForm(r, &form)
+	if err != nil {
+		app.clientError(w, http.StatusBadRequest)
+		return
+	}
+
+	form.CheckField(validator.NotBlank(form.Email), "email", "This field cannot be blank")
+	form.CheckField(validator.Matches(form.Email, validator.EmailRX), "email", "This field must be a valid email address")
+	form.CheckField(validator.NotBlank(form.Password), "password", "This field cannot be blank")
+
+	if !form.Valid() {
+		data := app.newTemplateData(r)
+		data.Form = form
+		app.render(w, http.StatusUnprocessableEntity, "login.tmpl.html", data)
+		return
+	}
+
+	id, err := app.users.Authenticate(form.Email, form.Password)
+	if err != nil {
+		if errors.Is(err, models.ErrInvalidCredentials) {
+			form.AddNonFieldError("Email or password is incorrect")
+			data := app.newTemplateData(r)
+			data.Form = form
+			app.render(w, http.StatusUnprocessableEntity, "login.tmpl.html", data)
+		} else {
+			app.serverError(w, err)
+		}
+		return
+	}
+
+	// Generate new session ID, need to be done upon change of privilege levels (i.e. login or logout)
+	// It will still retain any data associated with the session
+	err = app.sessionManager.RenewToken(r.Context())
+	if err != nil {
+		app.serverError(w, err)
+		return
+	}
+
+	// Add current user ID to indicate that they are logged in
+	app.sessionManager.Put(r.Context(), "authenticatedUserID", id)
+
+	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
 func (app *application) userLogoutPost(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintln(w, "Logout the user...")
+	err := app.sessionManager.RenewToken(r.Context())
+	if err != nil {
+		app.serverError(w, err)
+		return
+	}
+
+	app.sessionManager.Remove(r.Context(), "authenticatedUserID")
+
+	app.sessionManager.Put(r.Context(), "toast", "You've been logged out successfully!")
+
+	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
