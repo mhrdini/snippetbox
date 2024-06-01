@@ -61,8 +61,9 @@ func (app *application) render(w http.ResponseWriter, status int, filename strin
 // initialized with the current year.
 func (app *application) newTemplateData(r *http.Request) *templateData {
 	return &templateData{
-		CurrentYear: time.Now().Year(),
-		Toast:       app.sessionManager.PopString(r.Context(), "toast"),
+		CurrentYear:     time.Now().Year(),
+		Toast:           app.sessionManager.PopString(r.Context(), "toast"),
+		IsAuthenticated: app.isAuthenticated(r),
 	}
 }
 
@@ -92,4 +93,8 @@ func (app *application) decodePostForm(r *http.Request, dst any) error {
 	}
 
 	return nil
+}
+
+func (app *application) isAuthenticated(r *http.Request) bool {
+	return app.sessionManager.Exists(r.Context(), "authenticatedUserID")
 }

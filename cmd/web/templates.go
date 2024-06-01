@@ -13,11 +13,12 @@ import (
 // Define a templateData type to act as the holding structure for any dynamic data
 // that we want to pass to our HTML templates.
 type templateData struct {
-	CurrentYear int
-	Snippet     *models.Snippet
-	Snippets    []*models.Snippet
-	Form        any // to pass the validation errors and previously submitted data back to the template when we redisplay the form
-	Toast       string
+	CurrentYear     int
+	Snippet         *models.Snippet
+	Snippets        []*models.Snippet
+	Form            any // to pass the validation errors and previously submitted data back to the template when we redisplay the form
+	Toast           string
+	IsAuthenticated bool
 }
 
 func prettyDate(t time.Time) string {
