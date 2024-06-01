@@ -1,6 +1,7 @@
 package main
 
 import (
+	"crypto/tls"
 	"database/sql"
 	"flag"
 	"html/template"
@@ -82,16 +83,31 @@ func main() {
 		sessionManager: sessionManager,
 	}
 
+	// Initialise TLS config for non-default TLS/HTTPS settings
+	tlsConfig := &tls.Config{
+		CurvePreferences: []tls.CurveID{tls.X25519, tls.CurveP256}, // elliptic curves restriction
+		// -- min or max TLS version
+		// MinVersion: tls.VersionTLS512,
+		// MaxVersion: tls.VersionTLS512,
+		// -- cipher suites that aren't weak or those that use ECDHE (forward secrecy)
+		// CipherSuites: []uint16{tls.TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384},
+	}
+
 	// Initialise a new http.Server struct, setting the Addr and Handler fields to have it use the
 	// appropriate network address and routes, and the ErrorLog field so that the server now uses
 	// the custom errorLog logger in the event of any problems
 	srv := &http.Server{
-		Addr:     cfg.Addr,
-		ErrorLog: errorLog,
-		Handler:  app.routes(cfg), // servemux in routes.go
+		Addr:         cfg.Addr,
+		ErrorLog:     errorLog,
+		Handler:      app.routes(cfg), // servemux in routes.go
+		TLSConfig:    tlsConfig,
+		IdleTimeout:  time.Minute,     // reduce keep-alive to close connections earlier
+		ReadTimeout:  5 * time.Second, // close connection if accepted connection still hasn't read req headers/body
+		WriteTimeout: 10 * time.Second,
 	}
+
 	infoLog.Printf("Starting server on %s\n", cfg.Addr)
-	err = srv.ListenAndServe()
+	err = srv.ListenAndServeTLS("../../tls/cert.pem", "../../tls/key.pem")
 	errorLog.Fatal(err)
 }
 
