@@ -1,10 +1,17 @@
-package mysql
+package models
 
 import (
 	"database/sql"
-
-	"github.com/mhrdini/snippetbox/internal/models"
+	"time"
 )
+
+type Snippet struct {
+	ID      int
+	Title   string
+	Content string
+	Created time.Time
+	Expires time.Time
+}
 
 type SnippetModel struct {
 	DB *sql.DB
@@ -27,24 +34,24 @@ func (m *SnippetModel) Insert(title, content string, expires int) (int, error) {
 	return int(id), nil
 }
 
-func (m *SnippetModel) Get(id int) (*models.Snippet, error) {
+func (m *SnippetModel) Get(id int) (*Snippet, error) {
 	stmt := `SELECT id, title, content, created, expires FROM snippets
 	WHERE expires > UTC_TIMESTAMP() AND id = ?`
 
 	row := m.DB.QueryRow(stmt, id)
 
-	s := &models.Snippet{}
+	s := &Snippet{}
 
 	err := row.Scan(&s.ID, &s.Title, &s.Content, &s.Created, &s.Expires)
 	if err == sql.ErrNoRows {
-		return nil, models.ErrNoRecord
+		return nil, ErrNoRecord
 	} else if err != nil {
 		return nil, err
 	}
 	return s, nil
 }
 
-func (m *SnippetModel) Latest() ([]*models.Snippet, error) {
+func (m *SnippetModel) Latest() ([]*Snippet, error) {
 	stmt := `SELECT id, title, content, created, expires FROM snippets
 	WHERE expires > UTC_TIMESTAMP() ORDER BY created DESC LIMIT 10`
 
@@ -58,13 +65,13 @@ func (m *SnippetModel) Latest() ([]*models.Snippet, error) {
 	// program will panic trying to close a nil resultset
 	defer rows.Close()
 
-	snippets := []*models.Snippet{}
+	snippets := []*Snippet{}
 
 	// use rows.Next() hand-in-hand with rows.Scan() to iterate through sequence of rows in the
 	// resultset. Once this finishes, resultset automatically closes itself and frees up the
 	// underlying database connection
 	for rows.Next() {
-		s := &models.Snippet{}
+		s := &Snippet{}
 		err := rows.Scan(&s.ID, &s.Title, &s.Content, &s.Created, &s.Expires)
 		if err != nil {
 			return nil, err

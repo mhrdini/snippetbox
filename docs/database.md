@@ -6,12 +6,26 @@
 snippetbox
 |
 +-- snippets
-     |
-     +-- id       INTEGER       NOT NULL PRIMARY KEY AUTO_INCREMENT
-     +-- title    VARCHAR(100)  NOT NULL
-     +-- content  TEXT          NOT NULL
-     +-- created  DATETIME      NOT NULL # has INDEX: idx_snippets_created
-     +-- expires  DATETIME      NOT NULL
+|     |
+|     +-- id        INTEGER        NOT NULL PRIMARY KEY AUTO_INCREMENT
+|     +-- title     VARCHAR(100)   NOT NULL
+|     +-- content   TEXT           NOT NULL
+|     +-- created   DATETIME       NOT NULL # has INDEX: idx_snippets_created
+|     +-- expires   DATETIME       NOT NULL
+|
++-- sessions
+|     |
+|     +-- token     CHAR(43)       PRIMARY KEY
+|     +-- data      BLOB           NOT NULL
+|     +-- expiry    TIMESTAMP(6)   NOT NULL
+|
++-- users
+      |
+      +-- id                INTEGER       NOT NULL PRIMARY KEY AUTO_INCREMENT
+      +-- name              VARCHAR(255)  NOT NULL
+      +-- email             VARCHAR(255)  NOT NULL
+      +-- hashed_password   CHAR(60)      NOT NULL
+      +-- created           DATETIME      NOT NULL
 ```
 
 ## Setup
@@ -66,4 +80,15 @@ mysql> CREATE TABLE sessions (
   data BLOB NOT NULL,
   expiry TIMESTAMP(6) NOT NULL
 );
+
+# Create users with unique constraint on email column
+mysql> CREATE TABLE users (
+  id INTEGER NOT NULL PRIMARY KEY AUTO_INCREMENT,
+  name VARCHAR(255) NOT NULL,
+  email VARCHAR(255) NOT NULL,
+  hashed_password CHAR(60) NOT NULL,
+  created DATETIME NOT NULL
+);
+
+mysql> ALTER TABLE users ADD CONSTRAINT users_uc_email UNIQUE (email);
 ```
