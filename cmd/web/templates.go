@@ -19,6 +19,7 @@ type templateData struct {
 	Form            any // to pass the validation errors and previously submitted data back to the template when we redisplay the form
 	Toast           string
 	IsAuthenticated bool
+	CSRFToken       string // add hidden csrf_token input to each form tag for form submission to work, via template data when creating new template data
 }
 
 func prettyDate(t time.Time) string {
