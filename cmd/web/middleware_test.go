@@ -62,11 +62,15 @@ func TestSecureHeaders(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		got := rs.Header.Get(tt.header)
-		assert.Equal(t, got, tt.want)
+		t.Run(tt.header, func(t *testing.T) {
+			got := rs.Header.Get(tt.header)
+			assert.Equal(t, got, tt.want)
+		})
 	}
 
-	assert.Equal(t, rs.StatusCode, http.StatusOK)
+	t.Run("StatusOK", func(t *testing.T) {
+		assert.Equal(t, rs.StatusCode, http.StatusOK)
+	})
 
 	defer rs.Body.Close()
 	body, err := io.ReadAll(rs.Body)
