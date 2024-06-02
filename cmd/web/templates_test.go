@@ -31,10 +31,10 @@ func TestPrettyDate(t *testing.T) {
 		},
 	}
 
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			hd := prettyDate(test.tm)
-			assert.Equal(t, hd, test.want)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			hd := prettyDate(tt.tm)
+			assert.Equal(t, hd, tt.want)
 		})
 	}
 
