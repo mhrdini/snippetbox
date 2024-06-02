@@ -8,7 +8,7 @@ import (
 	"github.com/mhrdini/snippetbox/ui"
 )
 
-func (app *application) routes(cfg *Config) http.Handler {
+func (app *application) routes() http.Handler {
 	// httprouter.New initialises a new servemux
 	// and is used to register handlers for a URL pattern
 	router := httprouter.New()
@@ -27,6 +27,8 @@ func (app *application) routes(cfg *Config) http.Handler {
 	// Use the relative path to create a file server at that path
 	fs := http.FileServer(http.FS(ui.Files))
 	router.Handler(http.MethodGet, "/static/*filepath", fs)
+
+	router.HandlerFunc(http.MethodGet, "/ping", ping)
 
 	dynamic := alice.New(app.sessionManager.LoadAndSave, noSurf, app.authenticate)
 	router.Handler(http.MethodGet, "/", dynamic.ThenFunc(app.home))

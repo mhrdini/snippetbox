@@ -101,7 +101,7 @@ func main() {
 	srv := &http.Server{
 		Addr:         cfg.Addr,
 		ErrorLog:     errorLog,
-		Handler:      app.routes(cfg), // servemux in routes.go
+		Handler:      app.routes(), // servemux in routes.go
 		TLSConfig:    tlsConfig,
 		IdleTimeout:  time.Minute,     // reduce keep-alive to close connections earlier
 		ReadTimeout:  5 * time.Second, // close connection if accepted connection still hasn't read req headers/body

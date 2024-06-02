@@ -43,7 +43,7 @@ func newTemplateCache() (map[string]*template.Template, error) {
 	cache := map[string]*template.Template{}
 
 	// Use the filepath.Glob function to get a slice of all filepaths with the extension '.page.html'.
-	// This essentially gives us a slice of all the 'page' templates for the application.
+	// This essentially gives us a slice of all the 'page' templates for the Application.
 	pages, err := fs.Glob(ui.Files, "html/pages/*.tmpl.html")
 	if err != nil {
 		return nil, err
