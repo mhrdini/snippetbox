@@ -2,16 +2,18 @@ package mocks
 
 import "github.com/mhrdini/snippetbox/internal/models"
 
-var (
-	MockEmail    = "astarion@bg3.com"
-	MockPassword = "cazadorsucks"
+const (
+	ValidName     = "Astarion Ancunin"
+	ValidEmail    = "lilstar@bg3.com"
+	ValidPassword = "cazadorsucks"
+	DupeEmail     = "dupe@email.com"
 )
 
 type UserModel struct{}
 
 func (m *UserModel) Insert(name, email, password string) error {
 	switch email {
-	case MockEmail:
+	case DupeEmail:
 		return models.ErrDuplicateEmail
 	default:
 		return nil
@@ -19,7 +21,7 @@ func (m *UserModel) Insert(name, email, password string) error {
 }
 
 func (m *UserModel) Authenticate(email, password string) (int, error) {
-	if email == MockEmail && password == MockPassword {
+	if email == ValidEmail && password == ValidPassword {
 		return 1, nil
 	}
 

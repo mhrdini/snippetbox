@@ -2,11 +2,14 @@ package main
 
 import (
 	"bytes"
+	"html"
 	"io"
 	"log"
 	"net/http"
 	"net/http/cookiejar"
 	"net/http/httptest"
+	"net/url"
+	"regexp"
 	"testing"
 	"time"
 
@@ -15,8 +18,25 @@ import (
 	"github.com/mhrdini/snippetbox/internal/models/mocks"
 )
 
+var csrfTokenRX = regexp.MustCompile(`<input type="hidden" name="csrf_token" value="(.+)" />`)
+
 type testServer struct {
 	*httptest.Server
+}
+
+func extractCSRFToken(t *testing.T, body string) string {
+	// matches is an array with the entire matched pattern in the first position,
+	// and the values of any captured data in the subsequent positions
+	matches := csrfTokenRX.FindStringSubmatch(body)
+	if len(matches) < 2 {
+		t.Fatal("no csrf token found in body")
+	}
+
+	// we need to unescape the string because:
+	// - Go's html/template package automatically escapes all dynamically rendered data; and
+	// - the CSRF token is a base64 encoded string that might include the + character
+	// which will be escaped to &#43
+	return html.UnescapeString(string(matches[1]))
 }
 
 func newTestApplication(t *testing.T) *application {
@@ -72,6 +92,22 @@ func (ts *testServer) get(t *testing.T, path string) (int, http.Header, string) 
 	// use the test server Client to send requests
 	// the client can be configured to tweak its behaviour
 	rs, err := ts.Client().Get(ts.URL + path)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	defer rs.Body.Close()
+	body, err := io.ReadAll(rs.Body)
+	if err != nil {
+		t.Fatal(err)
+	}
+	bytes.TrimSpace(body)
+
+	return rs.StatusCode, rs.Header, string(body)
+}
+
+func (ts *testServer) postForm(t *testing.T, path string, form url.Values) (int, http.Header, string) {
+	rs, err := ts.Client().PostForm(ts.URL+path, form) // the only difference between get and postForm
 	if err != nil {
 		t.Fatal(err)
 	}
