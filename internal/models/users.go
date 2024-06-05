@@ -22,6 +22,12 @@ type UserModel struct {
 	DB *sql.DB
 }
 
+type UserModelInterface interface {
+	Exists(id int) (bool, error)
+	Insert(name, email, password string) error
+	Authenticate(email, password string) (int, error)
+}
+
 func (m *UserModel) Exists(id int) (bool, error) {
 	var exists bool
 

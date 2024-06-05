@@ -8,18 +8,41 @@ import (
 	"net/http/cookiejar"
 	"net/http/httptest"
 	"testing"
+	"time"
+
+	"github.com/alexedwards/scs/v2"
+	"github.com/go-playground/form/v4"
+	"github.com/mhrdini/snippetbox/internal/models/mocks"
 )
 
 type testServer struct {
 	*httptest.Server
 }
 
-func newTestApplication() *application {
+func newTestApplication(t *testing.T) *application {
+	templateCache, err := newTemplateCache()
+	if err != nil {
+		t.Fatal()
+	}
+
+	formDecoder := form.NewDecoder()
+
+	// by not setting session store, SCS will default to in-memory storage (suitable for testing
+	// purposes)
+	sessionManager := scs.New()
+	sessionManager.Lifetime = 12 * time.Hour
+	sessionManager.Cookie.Secure = true
+
 	return &application{
 		// used in the errorLog and recoverPanic middleware used across all routes
 		// so we create dummy loggers so those functions won't panic
-		errorLog: log.New(io.Discard, "", 0),
-		infoLog:  log.New(io.Discard, "", 0),
+		errorLog:       log.New(io.Discard, "", 0),
+		infoLog:        log.New(io.Discard, "", 0),
+		snippets:       &mocks.SnippetModel{},
+		users:          &mocks.UserModel{},
+		templateCache:  templateCache,
+		formDecoder:    formDecoder,
+		sessionManager: sessionManager,
 	}
 }
 
