@@ -20,3 +20,11 @@ func StringContains(t *testing.T, got, want string) {
 		t.Errorf("got: %v; expected to contain: %v", got, want)
 	}
 }
+
+func NilError(t *testing.T, got error) {
+	t.Helper()
+
+	if got != nil {
+		t.Errorf("got: %v; expected: nil", got)
+	}
+}

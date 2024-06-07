@@ -26,6 +26,11 @@ snippetbox
       +-- email             VARCHAR(255)  NOT NULL
       +-- hashed_password   CHAR(60)      NOT NULL
       +-- created           DATETIME      NOT NULL
+
+test_snippetbox
+|
++-- snippets
+
 ```
 
 ## Setup
@@ -33,7 +38,8 @@ snippetbox
 After installing MySQL on your machine:
 
 ```bash
-$ sudo mysql
+$ sudo mysql # or mysql -u root -p
+# when prompted for a password, enter your password and/or just press Enter
 mysql>
 
 # Create snippetbox DB
@@ -92,3 +98,19 @@ mysql> CREATE TABLE users (
 
 mysql> ALTER TABLE users ADD CONSTRAINT users_uc_email UNIQUE (email);
 ```
+
+### Testing Database
+
+```bash
+# Create test database and user
+mysql> CREATE DATABASE test_snippetbox CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+mysql> CREATE USER 'test_web'@'localhost';
+mysql> GRANT CREATE, DROP, ALTER, INDEX, SELECT, INSERT, UPDATE, DELETE ON test_snippetbox.* TO 'test_web'@'localhost';
+mysql> ALTER USER 'test_web'@'localhost' IDENTIFIED BY 'test_web';
+```
+
+Also used:
+
+- [setup.sql](https://github.com/mhrdini/snippetbox/blob/main/internal/models/testdata/setup.md)
+- [teardown.sql](https://github.com/mhrdini/snippetbox/blob/main/internal/models/testdata/teardown.md)
